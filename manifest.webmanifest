@@ -1,0 +1,18 @@
+{
+  "name": "NIRC 훈련 페이스 계산기",
+  "short_name": "NIRC 페이스",
+  "description": "5km 또는 10km 기록으로 훈련별 권장 페이스를 계산합니다.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#0b6bcb",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

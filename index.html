@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b6bcb">
+  <meta name="description" content="5km 또는 10km 기록으로 훈련별 권장 페이스를 계산합니다.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg">
+  <title>NIRC 훈련 페이스 계산기</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07111f;--panel:#0d1c2e;--line:#203650;--text:#f4f8ff;--muted:#9eb1c7;--blue:#2692ff;--cyan:#71e5ff;--green:#53d59b;--amber:#ffbf69;--red:#ff7187}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 80% -10%,#103b66 0,transparent 34%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;min-height:100vh}
+    .app{width:min(760px,100%);margin:auto;padding:24px 18px 48px}.brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}.mark{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,var(--blue),#08539c);font-weight:900}.title h1{font-size:1.35rem;margin:0}.title p{font-size:.86rem;color:var(--muted);margin:3px 0 0}.version{margin-left:auto;color:var(--muted);font-size:.75rem}
+    .card{background:linear-gradient(180deg,rgba(17,36,58,.97),rgba(10,26,43,.97));border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+    .tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:#071421;border-radius:14px;margin-bottom:18px}.tab{border:0;background:transparent;color:var(--muted);padding:12px;border-radius:11px;font-size:1rem;font-weight:800}.tab.active{background:#123456;color:#fff;box-shadow:inset 0 0 0 1px #296493}
+    label{display:block;color:#c8d5e4;font-weight:700;margin:0 0 9px}.time{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field{position:relative}.field input{width:100%;background:#071421;border:1px solid #2a4563;border-radius:14px;color:#fff;font-size:1.5rem;font-variant-numeric:tabular-nums;font-weight:800;padding:16px 42px 16px 14px;outline:0}.field input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(113,229,255,.12)}.field span{position:absolute;right:13px;top:21px;color:var(--muted);font-size:.85rem}.hint{min-height:22px;color:var(--muted);font-size:.84rem;margin:9px 2px}.error{color:#ff9aaa}
+    .calculate{width:100%;border:0;border-radius:15px;padding:15px;background:linear-gradient(135deg,var(--blue),#00a6c8);color:white;font-size:1.05rem;font-weight:900;box-shadow:0 10px 25px rgba(18,126,225,.25)}.calculate:active{transform:translateY(1px)}
+    .summary{display:none;margin-top:16px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#103862,#0a5d69);grid-template-columns:1fr 1fr;gap:12px}.summary.show{display:grid}.stat small{display:block;color:#c5e6f2;margin-bottom:4px}.stat strong{font-size:1.45rem;font-variant-numeric:tabular-nums}.formula{grid-column:1/-1;padding-top:10px;border-top:1px solid rgba(255,255,255,.18);color:#d5edf5;font-size:.82rem}
+    .results{display:none;margin-top:20px}.results.show{display:block}.section-head{display:flex;align-items:end;justify-content:space-between;margin:0 2px 10px}.section-head h2{font-size:1.05rem;margin:0}.section-head span{font-size:.78rem;color:var(--muted)}
+    .pace-list{display:grid;gap:9px}.pace-row{display:grid;grid-template-columns:minmax(0,1.35fr) .8fr .75fr;align-items:center;gap:8px;padding:13px 14px 11px;border:1px solid var(--line);border-radius:15px;background:rgba(13,28,46,.82)}.pace-row.primary{border-color:#27689b;background:linear-gradient(100deg,rgba(21,73,117,.65),rgba(13,28,46,.9))}.kind{font-weight:850}.kind small{display:block;font-weight:500;color:var(--muted);margin-top:3px;font-size:.72rem}.pace{text-align:right;font-size:1.13rem;font-weight:900;font-variant-numeric:tabular-nums}.split{text-align:right;color:var(--cyan);font-size:.82rem;font-variant-numeric:tabular-nums}.offset{display:inline-block;margin-left:5px;padding:2px 6px;border-radius:7px;background:#1a3856;color:#b9d8f2;font-size:.66rem;vertical-align:2px}.range{color:var(--amber)}.recommend{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-top:3px;padding-top:10px;border-top:1px solid rgba(137,177,212,.16)}.recommend span{color:#b8c9da;font-size:.78rem;font-weight:700}.recommend b{display:inline-block;margin-left:6px;padding:3px 7px;border-radius:8px;background:rgba(83,213,155,.11);color:#8be6bb;font-size:.7rem}.recommend strong{color:var(--green);font-size:1.05rem;font-variant-numeric:tabular-nums}.recommend small{color:var(--cyan);font-size:.75rem;margin-left:8px}
+    .note{margin-top:16px;color:var(--muted);font-size:.78rem;line-height:1.55;padding:0 3px}.note strong{color:#cddbeb}footer{text-align:center;color:#657b92;font-size:.72rem;margin-top:24px}
+    @media(max-width:480px){.app{padding:17px 13px 36px}.card{padding:15px;border-radius:19px}.title h1{font-size:1.16rem}.time{gap:7px}.field input{font-size:1.25rem;padding-left:11px}.pace-row{grid-template-columns:minmax(0,1.25fr) .82fr .7fr;padding:12px 10px 10px}.kind{font-size:.9rem}.pace{font-size:1rem}.split{font-size:.76rem}.recommend strong{font-size:.98rem}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="brand"><div class="mark">N</div><div class="title"><h1>NIRC 훈련 페이스 계산기</h1><p>현재 기록 하나로 훈련 페이스를 한눈에</p></div><span class="version">v1.2</span></header>
+    <section class="card">
+      <div class="tabs" role="tablist" aria-label="기준 기록 선택">
+        <button class="tab active" data-distance="5" role="tab" aria-selected="true">5km 기록</button>
+        <button class="tab" data-distance="10" role="tab" aria-selected="false">10km 기록</button>
+      </div>
+      <label for="minutes">기록 입력</label>
+      <div class="time">
+        <div class="field"><input id="hours" type="number" min="0" max="9" inputmode="numeric" value="0" aria-label="시간"><span>시간</span></div>
+        <div class="field"><input id="minutes" type="number" min="0" max="59" inputmode="numeric" value="20" aria-label="분"><span>분</span></div>
+        <div class="field"><input id="seconds" type="number" min="0" max="59" inputmode="numeric" value="0" aria-label="초"><span>초</span></div>
+      </div>
+      <div id="hint" class="hint">5km 기록을 입력하세요. 10km=(5km×2)+1분30초로 환산합니다.</div>
+      <button id="calculate" class="calculate">훈련 페이스 계산</button>
+      <div id="summary" class="summary" aria-live="polite">
+        <div class="stat"><small>환산 10km 기록</small><strong id="tenTime">—</strong></div>
+        <div class="stat"><small>기준 10km 페이스</small><strong id="tenPace">—</strong></div>
+        <div id="formula" class="formula"></div>
+      </div>
+      <section id="results" class="results">
+        <div class="section-head"><h2>권장 훈련 페이스</h2><span>현재 10km 페이스 기준</span></div>
+        <div id="paceList" class="pace-list"></div>
+        <div class="note"><strong>적용 원칙</strong> 목표 기록이 아니라 현재 기록을 입력하세요. LT·템포·지속주 페이스는 컨디션, 기온, 코스에 따라 5~10초 조절할 수 있습니다. 400m 기록은 트랙 참고용입니다.</div>
+      </section>
+    </section>
+    <footer>나주 빛달 · NIRC</footer>
+  </main>
+  <script>
+    const plans = [
+      {name:'VO₂max 인터벌', note:'1,000m×4~6 또는 400m×8~12', min:-20, max:-15, fixed:-20},
+      {name:'10km 레이스페이스', note:'1,000~2,000m 반복', min:0, max:0, fixed:0, primary:true},
+      {name:'LT 인터벌', note:'2,000m×3~4', min:10, max:15, fixed:15},
+      {name:'연속 템포런', note:'20~30분 연속주', min:15, max:25, fixed:20},
+      {name:'하프 페이스', note:'하프 실전·긴 크루즈', min:15, max:25, fixed:20},
+      {name:'풀마라톤 페이스', note:'8~16km MP주', min:35, max:50, fixed:40},
+      {name:'유산소 지속주', note:'50~70분 지속주', min:60, max:90, fixed:75},
+      {name:'E·회복 조깅', note:'30~60분 회복주', min:95, max:105, fixed:100},
+      {name:'저강도 장거리', note:'16~22km 저강도', min:90, max:120, fixed:110}
+    ];
+    let distance = 5;
+    const $ = id => document.getElementById(id);
+    const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
+    const clock = seconds => { seconds=Math.max(0,Math.round(seconds)); const h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60; return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`; };
+    const pace = seconds => `${Math.floor(seconds/60)}′${String(Math.round(seconds%60)).padStart(2,'0')}″`;
+    const split400 = seconds => `${Math.floor(seconds*.4/60)}′${String(Math.round(seconds*.4%60)).padStart(2,'0')}″`;
+    const offsetLabel = (min,max) => min===max ? (min===0?'기준':`${min>0?'+':''}${min}초`) : `${min>0?'+':''}${min}~${max>0?'+':''}${max}초`;
+    const fixedDeltaLabel = value => value===0 ? '10K와 동일' : `10K 대비 ${value>0?'+':'−'}${Math.abs(value)}초`;
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => {t.classList.toggle('active',t===tab);t.setAttribute('aria-selected',t===tab)});
+      distance=Number(tab.dataset.distance);
+      $('hours').value=0;$('minutes').value=distance===5?20:42;$('seconds').value=0;
+      $('hint').textContent=distance===5?'5km 기록을 입력하세요. 10km=(5km×2)+1분30초로 환산합니다.':'현재 10km 기록을 입력하세요. 이 기록의 km 페이스가 기준이 됩니다.';
+      $('summary').classList.remove('show');$('results').classList.remove('show');$('hint').classList.remove('error');
+    }));
+    function calculate(){
+      const h=clamp(Number($('hours').value)||0,0,9),m=clamp(Number($('minutes').value)||0,0,59),s=clamp(Number($('seconds').value)||0,0,59); const total=h*3600+m*60+s;
+      const minimum=distance===5?720:1500, maximum=distance===5?3600:7200;
+      if(total<minimum||total>maximum){$('hint').textContent=distance===5?'5km 기록은 12분~60분 범위로 입력해 주세요.':'10km 기록은 25분~2시간 범위로 입력해 주세요.';$('hint').classList.add('error');return;}
+      $('hint').classList.remove('error');
+      const tenSeconds=distance===5?total*2+90:total, k=tenSeconds/10;
+      $('tenTime').textContent=clock(tenSeconds);$('tenPace').textContent=pace(k)+'/km';
+      $('formula').textContent=distance===5?`${clock(total)} × 2 + 1분30초 = ${clock(tenSeconds)}`:`입력한 10km 기록 ${clock(total)}을 기준으로 계산`;
+      $('paceList').innerHTML=plans.map(p=>{
+        const a=k+p.min,b=k+p.max, isRange=p.min!==p.max;
+        const fixed=k+p.fixed;
+        return `<div class="pace-row ${p.primary?'primary':''}"><div class="kind">${p.name}<span class="offset">${offsetLabel(p.min,p.max)}</span><small>${p.note}</small></div><div class="pace ${isRange?'range':''}">${isRange?`${pace(a)}~${pace(b)}`:pace(a)}<small>/km</small></div><div class="split">400m<br>${isRange?`${split400(a)}~${split400(b)}`:split400(a)}</div><div class="recommend"><span>고정 추천 <b>${fixedDeltaLabel(p.fixed)}</b></span><div><strong>${pace(fixed)}/km</strong><small>400m ${split400(fixed)}</small></div></div></div>`;
+      }).join('');
+      $('summary').classList.add('show');$('results').classList.add('show');
+      localStorage.setItem('nircPaceInput',JSON.stringify({distance,h,m,s}));
+    }
+    $('calculate').addEventListener('click',calculate);
+    document.querySelectorAll('input').forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter')calculate()}));
+    try{const saved=JSON.parse(localStorage.getItem('nircPaceInput'));if(saved&&[5,10].includes(saved.distance)){document.querySelector(`.tab[data-distance="${saved.distance}"]`).click();$('hours').value=saved.h;$('minutes').value=saved.m;$('seconds').value=saved.s;calculate();}}catch(e){}
+    if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+  </script>
+</body>
+</html>
